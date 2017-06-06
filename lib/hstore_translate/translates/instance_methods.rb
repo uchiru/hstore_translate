@@ -29,6 +29,9 @@ module HstoreTranslate
 
       def write_hstore_translation(attr_name, value, locale = I18n.locale)
         translation_store = "#{attr_name}#{SUFFIX}"
+
+        # This line causing stack level too deep error on activerecord < 4.2
+        #              public_send(translation_store) || {}
         translations = public_send(translation_store) || {}
         public_send("#{translation_store}_will_change!") unless translations[locale.to_s] == value
         translations[locale.to_s] = value
@@ -68,7 +71,10 @@ module HstoreTranslate
       # Returns the attribute name Symbol, locale Symbol, and a Boolean
       # indicating whether or not the caller is attempting to assign a value.
       def parse_translated_attribute_accessor(method_name)
-        return unless /(?<attribute>[a-z_]+)_(?<locale>[a-z]{2})(?<assignment>=?)\z/ =~ method_name
+
+        # It's required to monkey patch this line to enable :tat locale
+        #                                                   {2} <- origin
+        return unless /(?<attribute>[a-z_]+)_(?<locale>[a-z]{2,})(?<assignment>=?)\z/ =~ method_name
 
         translated_attr_name = attribute.to_sym
         return unless translated_attribute_names.include?(translated_attr_name)
