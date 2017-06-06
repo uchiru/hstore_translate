@@ -31,8 +31,8 @@ module HstoreTranslate
         translation_store = "#{attr_name}#{SUFFIX}"
 
         # This line causing stack level too deep error on activerecord < 4.2
-        #              public_send(translation_store) || {}
-        translations = public_send(translation_store) || {}
+        #                 public_send(translation_store) || {}
+        translations = read_attribute(translation_store) || {}
         public_send("#{translation_store}_will_change!") unless translations[locale.to_s] == value
         translations[locale.to_s] = value
         public_send("#{translation_store}=", translations)
